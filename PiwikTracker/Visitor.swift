@@ -16,7 +16,7 @@ struct Visitor {
     
     /// An optional user identifier such as email or username.
     /// api-key: uid
-    let userId: String?
+    var userId: String?
 }
 
 extension Visitor {
@@ -25,7 +25,7 @@ extension Visitor {
             PiwikUserDefaults.standard.clientId = newVisitorID()
             return current()
         }
-        let userId: String? = nil // we can add the userid later
+        let userId: String? = nil
         return Visitor(id: id, userId: userId)
     }
     
