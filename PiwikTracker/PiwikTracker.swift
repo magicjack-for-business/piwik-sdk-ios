@@ -192,8 +192,8 @@ extension PiwikTracker {
         return Event(event: event(), url: url, actionName: action)
     }
     
-    internal func event(withCategory category: String, action: String, name: String? = nil, value: Float? = nil) -> Event {
-        return Event(event: event(), eventCategory: category, eventAction: action, eventName: name, eventValue: value)
+    internal func event(withCategory category: String, action: String, name: String? = nil, value: Float? = nil, url: URL? = nil) -> Event {
+        return Event(event: event(), url: url, eventCategory: category, eventAction: action, eventName: name, eventValue: value)
     }
 }
 
@@ -218,7 +218,7 @@ extension PiwikTracker {
     }
     
     /// Tracks an event as described here: https://piwik.org/docs/event-tracking/
-    public func track(eventWithCategory category: String, action: String, name: String? = nil, value: Float? = nil) {
-        queue(event: event(withCategory: category, action: action, name: name, value: value))
+    public func track(eventWithCategory category: String, action: String, name: String? = nil, value: Float? = nil, url: URL? = nil) {
+        queue(event: event(withCategory: category, action: action, name: name, value: value, url: url))
     }
 }
