@@ -25,13 +25,21 @@ final class URLSessionDispatcher: Dispatcher {
         return currentUserAgent.appending(" PiwikTracker SDK URLSessionDispatcher")
     }()
     
-    init(baseURL: URL) {
+    /// Generate a URLSessionDispatcher instance
+    ///
+    /// - Parameters:
+    ///   - baseURL: The url of the piwik server. This url has to end in `piwik.php`.
+    ///   - userAgent: An optional parameter for custom user agent.
+    init(baseURL: URL, userAgent: String? = nil) {
         if !baseURL.absoluteString.hasSuffix("piwik.php") {
             fatalError("The baseURL is expected to end in piwik.php")
         }
         self.baseURL = baseURL
         self.timeout = 5
         self.session = URLSession.shared
+        if (userAgent != nil) {
+            self.userAgent = userAgent
+        }
     }
     
     func send(event: Event, success: @escaping ()->(), failure: @escaping (_ error: Error)->()) {
@@ -85,7 +93,7 @@ final class URLSessionDispatcher: Dispatcher {
 fileprivate extension Event {
     var queryItems: [URLQueryItem] {
         get {
-            return [
+            var items = [
                 URLQueryItem(name: "idsite", value: siteId),
                 URLQueryItem(name: "rec", value: "1"),
                 // Visitor
@@ -117,6 +125,10 @@ fileprivate extension Event {
                 URLQueryItem(name: "e_v", value: eventValue != nil ? "\(eventValue!)" : nil),
                 
                 ].filter({ $0.value != nil }) // remove the items that lack the value
+            for dimension in dimensions {
+                items.append(URLQueryItem(name: "dimension\(dimension.index)", value: dimension.value))
+            }
+            return items
         }
     }
 }

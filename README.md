@@ -1,10 +1,10 @@
 # PiwikTracker iOS SDK
 
-The PiwikTracker is an iOS SDK for sending app analytics to a Piwik server.
+The PiwikTracker is an iOS, tvOS and macOS SDK for sending app analytics to a Piwik server. PiwikTracker can be used from Swift and [Objective-C](#objective-c-compatibility).
 
-**This is not the final and stable version but a prerelease of the Swift rewrite. Please check [this list](https://github.com/piwik/piwik-sdk-ios/issues?utf8=✓&q=is%3Aopen%20is%3Aissue%20label%3Adiscussion%20label%3Aswift3) to see what is left and can be improved.**
+**Fancy help improving this SDK? Check [this list](https://github.com/piwik/piwik-sdk-ios/issues?utf8=✓&q=is%3Aopen%20is%3Aissue%20label%3Adiscussion%20label%3Aswift3) to see what is left and can be improved.**
 
-[![Build Status](https://travis-ci.org/piwik/piwik-sdk-ios.svg?branch=swift3)](https://travis-ci.org/piwik/piwik-sdk-ios)
+[![Build Status](https://travis-ci.org/piwik/piwik-sdk-ios.svg?branch=develop)](https://travis-ci.org/piwik/piwik-sdk-ios)
 
 ## Installation
 ### [CocoaPods](https://cocoapods.org)
@@ -12,7 +12,7 @@ The PiwikTracker is an iOS SDK for sending app analytics to a Piwik server.
 Use the following in your Podfile.
 
 ```
-pod 'PiwikTracker', '~> 4.0.0-beta'
+pod 'PiwikTracker', '~> 4.1.0'
 ```
 
 Then run `pod install`. In every file you want to use the PiwikTracker, don't forget to import the framwork with `import PiwikTracker`.
@@ -44,7 +44,7 @@ The PiwikTracker can track hierarchical screen names, e.g. screen/settings/regis
 PiwikTracker.shared?.track(view: ["path","to","your","page"])
 ```
 
-You can also set the url of the page. 
+You can also set the url of the page.
 ```
 let url = URL(string: "https://piwik.org/get-involved/")
 PiwikTracker.shared?.track(view: ["community","get-involved"], url: url)
@@ -65,9 +65,36 @@ PiwikTracker.shared?.track(eventWithCategory: "player", action: "slide", name: "
 
 This will log that the user slided the volume slider on the player to 35.1%.
 
-### Advanced
+### Custom Dimension
 
-#### Manual dispatching
+The Piwik SDK currently supports Custom Dimensions for the Visit Scope. Using Custom Dimensions you can add properties to the whole visit, such as "Did the user finish the tutorial?", "Is the user a paying user?" or "Which version of the Application is being used?" and such. Before sending custom dimensions please make sure Custom Dimensions are [properly installed and configured](https://piwik.org/docs/custom-dimensions/). You will need the `ID` of your configured Dimension.
+
+After that you can set a new Dimension,
+
+```
+PiwikTracker.shared?.set(value: "1.0.0-beta2", forIndex: 1)
+```
+
+or remove an already set dimension.
+
+```
+PiwikTracker.shared?.remove(dimensionAtIndex: 1)
+```
+
+Dimensions in the Visit Scope will be sent along every Page View or Event. Custom Dimensions are not persisted by the SDK and have to be re-configured upon application startup.
+
+### Custom User ID
+
+To add a [custom User ID](https://piwik.org/docs/user-id/), simply set the value you'd like to use on the `visitorId` field of the shared tracker:
+
+```
+PiwikTracker.shared?.visitorId = "coolUsername123"
+```
+
+All future events being tracked by the SDK will be associated with this userID, as opposed to the default UUID created for each Visitor.
+
+## Advanced Usage
+### Manual dispatching
 
 The PiwikTracker will dispatch events every 30 seconds automatically. If you want to dispatch events manually, you can use the `dispatch()` function. You can, for example, dispatch whenever the application enter the background.
 
@@ -77,7 +104,7 @@ func applicationDidEnterBackground(_ application: UIApplication) {
 }
 ```
 
-#### Session Management
+### Session Management
 
 The PiwikTracker starts a new session whenever the application starts. If you want to start a new session manually, you can use the `startNewSession()` function. You can, for example, start a new session whenever the user enters the application.
 
@@ -87,7 +114,7 @@ func applicationWillEnterForeground(_ application: UIApplication) {
 }
 ```
 
-#### Logging
+### Logging
 
 The PiwikTracker per default loggs `warning` and `error` messages to the console. You can change the `LogLevel`.
 
@@ -101,6 +128,25 @@ PiwikTracker.shared?.logger = DefaultLogger(minLevel: .error)
 
 You can also write your own `Logger` and send the logs whereever you want. Just write a new class/struct an let it conform to the `Logger` protocol.
 
+### Custom User Agent
+The `PiwikTracker` will create a default user agent derived from the WKWebView user agent. This is why you should always instantiate and configure the `PiwikTracker` on the main thread.
+You can instantiate the `PiwikTracker` using your own user agent.
+
+```
+PiwikTracker.configureSharedInstance(withSiteID: "5", baseURL: URL(string: "http://your.server.org/path-to-piwik/piwik.php")!, userAgent: "Your custom user agent")
+```
+
+### Objective-C compatibility
+
+Version 4 of this SDK is written in Swift, but you can use it in your Objective-C project as well. If you don't want to update you can still use the unsupported older [version 3](https://github.com/piwik/piwik-sdk-ios/tree/version-3). Using the Swift SDK from Objective-C should be pretty straight forward.
+
+```
+[PiwikTracker configureSharedInstanceWithSiteID:@"5" baseURL:[NSURL URLWithString:@"http://your.server.org/path-to-piwik/piwik.php"] userAgent:nil];
+[PiwikTracker shared] trackWithView:@[@"example"] url:nil];
+[[PiwikTracker shared] trackWithEventWithCategory:@"category" action:@"action" name:nil number:nil];
+[[PiwikTracker shared] dispatch];
+```
+
 ## Contributing
 Please read [CONTRIBUTING.md](https://github.com/piwik/piwik-sdk-ios/blob/swift3/CONTRIBUTING.md) for details.
 
@@ -108,10 +154,8 @@ Please read [CONTRIBUTING.md](https://github.com/piwik/piwik-sdk-ios/blob/swift3
 ### These features aren't implemented yet
 
 - Basic functionality
-  - [Sessions](https://github.com/piwik/piwik-sdk-ios/issues/136)
-  - [OptOut](https://github.com/piwik/piwik-sdk-ios/issues/124)
   - [Persisting non dispatched events](https://github.com/piwik/piwik-sdk-ios/issues/137)
-  - [Custom Dimensions](https://github.com/piwik/piwik-sdk-ios/issues/111)
+  - [Custom Dimensions](https://github.com/piwik/piwik-sdk-ios/issues/111) (Action Scope is not implemented yet)
 - Tracking of more things
   - Exceptions
   - Social Interactions
@@ -123,8 +167,6 @@ Please read [CONTRIBUTING.md](https://github.com/piwik/piwik-sdk-ios/blob/swift3
   - [Campaigns](https://github.com/piwik/piwik-sdk-ios/issues/109)
   - Content Impressions / Content Interactions
 - Customizing the tracker
-  - Custom User Agent
-  - userID
   - add prefixing? (The objc-SDK had a prefixing functionality ![Example screenshot](http://piwik.github.io/piwik-sdk-ios/piwik_prefixing.png))
   - set the dispatch interval
   - use different dispatchers (Alamofire)

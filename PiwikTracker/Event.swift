@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CoreGraphics
 
 /// Represents an event of any kind.
 ///
@@ -65,4 +66,6 @@ public struct Event {
     let eventAction: String?
     let eventName: String?
     let eventValue: Float?
+    
+    let dimensions: [CustomDimension]
 }
